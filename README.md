@@ -1,6 +1,3 @@
-Here's a `README.md` file tailored for your PyTorch-based softmax classification project using the Iris dataset. This README provides an overview of the project, setup instructions, and details on how to run and understand the code.
-
-```markdown
 # PyTorch Softmax Classification
 
 This project demonstrates how to implement a softmax classification model using PyTorch on the Iris dataset. The model is built to classify Iris flowers into one of three species based on four features.
