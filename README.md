@@ -1,42 +1,89 @@
-Sure! Here's a `README.md` file for your PyTorch-based softmax classification project, styled similarly to the one you provided:
+Here's a `README.md` file tailored for your PyTorch-based softmax classification project using the Iris dataset. This README provides an overview of the project, setup instructions, and details on how to run and understand the code.
 
 ```markdown
-# Softmax Classification Using PyTorch
+# PyTorch Softmax Classification
 
-In this project, we build a softmax classification model using PyTorch to classify Iris flowers into one of three species based on their features.
+This project demonstrates how to implement a softmax classification model using PyTorch on the Iris dataset. The model is built to classify Iris flowers into one of three species based on four features.
 
-## 1. Data Preparation
+## Overview
 
-### Step 1: Load and Preprocess Data
+The project includes:
 
-1. **Load the Dataset**
-   We use the Iris dataset from `sklearn.datasets`, which contains measurements for Iris flowers and their corresponding species.
+- Loading and preprocessing the Iris dataset.
+- Building a neural network model with PyTorch.
+- Training the model and evaluating its performance.
 
-2. **Standardize Features**
-   Features are standardized using `StandardScaler` to ensure that they have a mean of 0 and a standard deviation of 1.
+## Requirements
 
-3. **One-Hot Encode Labels**
-   Labels are converted into one-hot encoded format using `OneHotEncoder`.
+Ensure you have the following libraries installed:
 
-4. **Convert to PyTorch Tensors**
-   The standardized features and one-hot encoded labels are converted into PyTorch tensors and moved to the GPU.
+- `torch`
+- `scikit-learn`
+- `numpy`
+- `matplotlib`
 
-### Step 2: Train-Test Split
+You can install the required libraries using pip:
 
-1. **Split Data**
-   The dataset is split into training and testing sets using `train_test_split` from `sklearn.model_selection`.
+```bash
+pip install torch scikit-learn numpy matplotlib
+```
 
-## 2. Model Definition
+## Dataset
 
-### Step 1: Define the Model Architecture
+The Iris dataset is used, which contains measurements for iris flowers. The dataset features four attributes per flower and includes three classes.
 
-1. **Softmax Classification Model**
-   - **Linear1 Layer:** Fully connected layer with input dimension (4) to hidden layer (10 neurons).
-   - **Sigmoid Activation:** Applied to the output of the first linear layer.
-   - **Linear2 Layer:** Fully connected layer from the hidden layer (10 neurons) to the output dimension (3 neurons, one for each class).
-   - **Softmax Activation:** Applied to the output of the second linear layer to produce probabilities.
+## Steps
+
+### 1. Data Preparation
+
+1. **Load and Preprocess Data**
+   - Load the Iris dataset.
+   - Standardize the feature values.
+   - One-hot encode the labels.
+
+2. **Convert to PyTorch Tensors**
+   - Convert the features and labels to PyTorch tensors and move them to the GPU.
+
+3. **Train-Test Split**
+   - Split the data into training and testing sets.
+
+### 2. Model Definition
+
+Define a neural network model using PyTorch:
+
+- **Model Architecture**
+  - `Linear1`: Fully connected layer with input dimension to hidden layer (10 neurons).
+  - `Linear2`: Fully connected layer from hidden layer to output dimension (3 neurons for the classes).
+  - Activation functions: Sigmoid for hidden layer and Softmax for the output layer.
+
+### 3. Training
+
+1. **Initialize the Model**
+   - Create an instance of the `SoftmaxClassification` model.
+
+2. **Define Loss and Optimizer**
+   - Use `CrossEntropyLoss` for classification.
+   - Use `AdamW` optimizer for training.
+
+3. **Training Loop**
+   - Iterate over epochs, compute the loss, and update model parameters.
+
+4. **Plot Training Loss**
+   - Plot the loss over epochs using Matplotlib.
+
+### 4. Code
+
+Here is a snippet of the code used in this project:
 
 ```python
+import torch
+import torch.nn as nn
+import numpy as np
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+import matplotlib.pyplot as plt
+
 class SoftmaxClassification(nn.Module):
     def __init__(self, input_dim, output_dim):
         super(SoftmaxClassification, self).__init__()
@@ -49,33 +96,35 @@ class SoftmaxClassification(nn.Module):
         x = self.linear2(x)
         x = nn.Softmax(dim=1)(x)
         return x
-```
 
-## 3. Training
+# Load and preprocess data
+x, y = load_iris(return_X_y=True)
+y = y.reshape(-1, 1)
+scaler = StandardScaler()
+x = scaler.fit_transform(x)
+y = OneHotEncoder(sparse=False).fit_transform(y)
 
-### Step 1: Initialize Model, Loss, and Optimizer
+x = torch.tensor(x, dtype=torch.float32).to('cuda')
+y = torch.tensor(y, dtype=torch.float32).to('cuda')
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
 
-1. **Initialize Model**
-   Create an instance of the `SoftmaxClassification` model with input dimension 4 and output dimension 3.
+model = SoftmaxClassification(4, 3)
+loss_fn = nn.CrossEntropyLoss()
+optimizer = torch.optim.AdamW(model.parameters(), lr=0.01)
 
-2. **Define Loss Function**
-   Use `CrossEntropyLoss` for classification.
+# Training loop
+losses = []
+epochs = 100
+for epoch in range(epochs):
+    model.train()
+    optimizer.zero_grad()
+    outputs = model(x_train)
+    loss = loss_fn(outputs, y_train)
+    loss.backward()
+    optimizer.step()
+    losses.append(loss.item())
 
-3. **Set Up Optimizer**
-   Use `AdamW` optimizer for training with a learning rate of 0.01.
-
-### Step 2: Training Loop
-
-1. **Training Process**
-   - Iterate over epochs, compute loss, and update model parameters.
-   - Track the loss values for visualization.
-
-2. **Plot Training Loss**
-   - Plot the loss over epochs using Matplotlib to visualize the learning process.
-
-```python
-import matplotlib.pyplot as plt
-
+# Plotting loss
 plt.plot(range(epochs), losses, 'g')
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
@@ -83,34 +132,10 @@ plt.title('Training Loss over Epochs')
 plt.show()
 ```
 
-## 4. Evaluation
+## Results
 
-### Step 1: Evaluate the Model
-
-1. **Model Performance**
-   Evaluate the model’s performance on the test set.
-
-## Example Usage
-
-To use the trained model for classification, you would follow these steps:
-
-```python
-import torch
-
-# Example data (features)
-example_data = torch.tensor([[5.1, 3.5, 1.4, 0.2]], dtype=torch.float32).to('cuda')
-
-# Prediction
-model.eval()
-with torch.no_grad():
-    output = model(example_data)
-    predicted_class = torch.argmax(output, dim=1)
-    print(f'The predicted class is: {predicted_class.item()}')
-```
-
-## Files
-
-- `softmax_classification.ipynb`: Jupyter Notebook containing the code for model training and evaluation.
+- **Model Training**: The model is trained for 100 epochs.
+- **Loss Visualization**: A plot of training loss over epochs is generated to visualize the learning process.
 
 ## License
 
@@ -125,4 +150,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ```
 
-This `README.md` file provides a clear and structured overview of your PyTorch project, making it easier for others to understand, set up, and run the code.
+This `README.md` file provides a structured overview of your project, making it easier for others to understand and use your code.
